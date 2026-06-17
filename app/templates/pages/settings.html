@@ -1,0 +1,27 @@
+<div class="row g-3">
+  <div class="col-12 col-xl-6">
+    <div class="card studio-card">
+      <div class="card-header studio-card-header"><div class="section-title">Application Settings</div><div class="section-subtitle">Placeholder for product-level settings.</div></div>
+      <div class="card-body settings-form">
+        <label class="form-label">Application name</label>
+        <input class="form-control" value="Mastermind RAG Chat Studio">
+        <label class="form-label mt-3">Default chat model</label>
+        <select class="form-select"><option>gpt-4.1</option><option>gpt-4.1-mini</option><option>local-llm</option></select>
+        <label class="form-label mt-3">Default system instruction</label>
+        <textarea class="form-control" rows="5">Answer using only retrieved document context. Include citations when possible.</textarea>
+        <button class="btn btn-primary mt-4">Save settings</button>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-xl-6">
+    <div class="card studio-card">
+      <div class="card-header studio-card-header"><div class="section-title">Admin Options</div><div class="section-subtitle">Mock security and maintenance settings.</div></div>
+      <div class="card-body">
+        <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" checked><label class="form-check-label">Show citations by default</label></div>
+        <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" checked><label class="form-check-label">Enable retrieval debug panel</label></div>
+        <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox"><label class="form-check-label">Require admin approval before embedding</label></div>
+        <div class="alert studio-alert mt-4">This page is a placeholder. Wire these controls to your backend config later.</div>
+      </div>
+    </div>
+  </div>
+</div>

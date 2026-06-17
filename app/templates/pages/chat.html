@@ -1,0 +1,58 @@
+<div class="row g-3 h-100">
+  <div class="col-12 col-xl-8">
+    <div class="card studio-card chat-card h-100">
+      <div class="card-header studio-card-header d-flex justify-content-between align-items-center">
+        <div>
+          <div class="section-title">RAG Chat</div>
+          <div class="section-subtitle">Grounded answers with citations from your document library.</div>
+        </div>
+        <span class="badge rounded-pill text-bg-success-soft">Library Ready</span>
+      </div>
+      <div class="card-body chat-body" id="chatMessages">
+        <div class="message user-message">
+          <div class="message-label">You</div>
+          <div class="message-bubble">Which properties have repeated HVAC emergency work orders?</div>
+        </div>
+        <div class="message assistant-message">
+          <div class="message-label">Assistant</div>
+          <div class="message-bubble">
+            Property A and Property C show repeated HVAC emergency work order patterns in the indexed maintenance history. The strongest signals are repeated emergency tags, short recurrence windows, and similar problem descriptions across recent work orders.
+            <div class="citation-row">
+              <span class="citation-chip">work_orders_2025.csv · row 1442</span>
+              <span class="citation-chip">hvac_notes.pdf · p. 8</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer chat-input-area">
+        <div class="input-group">
+          <input id="chatInput" type="text" class="form-control" placeholder="Ask about your documents..." />
+          <button id="sendChat" class="btn btn-primary">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-xl-4">
+    <div class="card studio-card h-100">
+      <div class="card-header studio-card-header">
+        <div class="section-title">Retrieval Trace</div>
+        <div class="section-subtitle">Mock developer view for retrieval debugging.</div>
+      </div>
+      <div class="card-body">
+        <div class="metric-grid">
+          <div class="metric"><span>Top K</span><strong>8</strong></div>
+          <div class="metric"><span>Threshold</span><strong>0.72</strong></div>
+          <div class="metric"><span>Latency</span><strong>812 ms</strong></div>
+          <div class="metric"><span>Tokens</span><strong>2.8k</strong></div>
+        </div>
+        <hr>
+        <div class="section-title mb-2">Top Chunks</div>
+        <div class="trace-list">
+          <div class="trace-item"><strong>chunk-9912</strong><span>score 0.88</span><p>HVAC emergency recurrence at Property A...</p></div>
+          <div class="trace-item"><strong>chunk-8120</strong><span>score 0.83</span><p>Fan coil failures and after-hours tickets...</p></div>
+          <div class="trace-item"><strong>chunk-1022</strong><span>score 0.71</span><p>Maintenance notes for Property C...</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

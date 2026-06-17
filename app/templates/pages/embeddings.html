@@ -1,0 +1,27 @@
+<div class="row g-3">
+  <div class="col-12 col-xl-5">
+    <div class="card studio-card">
+      <div class="card-header studio-card-header"><div class="section-title">Embedding Configuration</div><div class="section-subtitle">Placeholder controls for RAG indexing.</div></div>
+      <div class="card-body settings-form">
+        <label class="form-label">Embedding provider</label>
+        <select class="form-select"><option>OpenAI text-embedding-3-large</option><option>Azure OpenAI embedding model</option><option>Local sentence transformer</option></select>
+        <label class="form-label mt-3">Vector store</label>
+        <select class="form-select"><option>PostgreSQL pgvector</option><option>Qdrant</option><option>Pinecone</option><option>Azure AI Search</option></select>
+        <div class="row mt-3"><div class="col"><label class="form-label">Chunk size</label><input class="form-control" value="800"></div><div class="col"><label class="form-label">Overlap</label><input class="form-control" value="120"></div></div>
+        <div class="row mt-3"><div class="col"><label class="form-label">Top K</label><input class="form-control" value="8"></div><div class="col"><label class="form-label">Threshold</label><input class="form-control" value="0.72"></div></div>
+        <button class="btn btn-primary mt-4">Save settings</button>
+        <button class="btn btn-outline-secondary mt-4">Re-embed all</button>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-xl-7">
+    <div class="card studio-card">
+      <div class="card-header studio-card-header"><div class="section-title">Embedding Jobs</div><div class="section-subtitle">Mock job status list.</div></div>
+      <div class="card-body">
+        <div class="job-item"><div><strong>emb-1021</strong><p>Generate embeddings for uploaded survey file.</p></div><span>67%</span></div><div class="progress mb-3"><div class="progress-bar" style="width:67%"></div></div>
+        <div class="job-item"><div><strong>emb-1020</strong><p>Re-index HVAC notes.</p></div><span>100%</span></div><div class="progress mb-3"><div class="progress-bar" style="width:100%"></div></div>
+        <div class="job-item"><div><strong>emb-1019</strong><p>OCR and embed scanned invoices.</p></div><span>Failed</span></div><div class="progress"><div class="progress-bar bg-danger" style="width:31%"></div></div>
+      </div>
+    </div>
+  </div>
+</div>

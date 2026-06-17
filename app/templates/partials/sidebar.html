@@ -1,0 +1,26 @@
+<aside class="sidebar">
+  <a class="brand" href="/app/chat" aria-label="Mastermind RAG Chat Studio home">
+    <span class="brand-mark">KG</span>
+    <span>
+      <span class="brand-title">Mastermind</span>
+      <span class="brand-subtitle">RAG Chat Studio</span>
+    </span>
+  </a>
+
+  <nav class="sidebar-nav" aria-label="Main navigation">
+    {% for key, meta in pages.items() %}
+      <a class="nav-link-custom {% if page == key %}active{% endif %}" href="/app/{{ key }}">
+        <span class="nav-icon" data-icon="{{ key }}"></span>
+        <span>{{ meta.title }}</span>
+      </a>
+    {% endfor %}
+  </nav>
+
+  <div class="sidebar-card">
+    <div class="status-dot"></div>
+    <div>
+      <div class="sidebar-card-title">System KB Ready</div>
+      <div class="sidebar-card-subtitle">128 docs · 42.1k chunks</div>
+    </div>
+  </div>
+</aside>
