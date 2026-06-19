@@ -1,3 +1,5 @@
+from shutil import unregister_archive_format
+
 from fastapi import APIRouter, Request, Cookie, WebSocket, WebSocketDisconnect
 from fastapi.templating import Jinja2Templates
 from dependency_injector.wiring import inject, Provide
@@ -25,6 +27,7 @@ def get_message_type(type:str) -> CHAT_MESSAGE_TYPE:
      
 class CHAT_ERROR_TYPE(Enum):
     INVALID_HELLO = "invalid greeting message"
+    INVALID_TYPE= "invalid message type"
 
 NONCE_LENGTH = 16
 PAGES = {
@@ -62,7 +65,6 @@ DEFAULT_ASSISTANT_MESSAGE = (
 )
 
 CHAT_MEMORY: dict[str, list[dict[str, Any]]] = {}
-
 templates = Jinja2Templates(directory="app/templates")
 
 home_router = APIRouter(
@@ -95,6 +97,32 @@ async def push_system_message(websocket: WebSocket, type: CHAT_MESSAGE_TYPE, ses
         "created_at": now_utc_iso(),
     })
 
+async def build_response(user_text: str, session_id: str) -> dict[str, Any]:
+    """Temporary backend placeholder for the future RAG implementation."""
+    return {
+        "role": "assistant",
+        "content": DEFAULT_ASSISTANT_MESSAGE,
+        "created_at": now_utc_iso(),
+        "meta": {
+            "session_id": session_id,
+            "placeholder": True,
+            "received_text_length": len(user_text),
+            "retrieval": {
+                "mode": "traditional_rag_placeholder",
+                "top_k": 8,
+                "threshold": 0.72,
+                "chunks": [
+                    {
+                        "id": "placeholder-chunk-001",
+                        "source": "document_library_placeholder",
+                        "score": 0.88,
+                        "preview": "Retrieved chunk preview will appear here after RAG is implemented.",
+                    }
+                ],
+            },
+        },
+    }
+    
 @home_router.get("/", response_class=RedirectResponse)
 async def app_root(request: Request):
     redirect_url = request.url_for("app_page", page="chat")
@@ -177,9 +205,25 @@ async def ws_chat(websocket: WebSocket):
                     await push_system_message(websocket, CHAT_MESSAGE_TYPE.SYSTEM_MESSAGE, session_id, event)
                     
                 if CHAT_MESSAGE_TYPE.UNKNOWN == msg_type:
-                    await push_error_message(websocket, CHAT_ERROR_TYPE.INVALID_HELLO)
+                    await push_error_message(websocket, CHAT_ERROR_TYPE.INVALID_TYPE)
                     continue
 
+                user_message = (event.get("text") or "").strip()
+                if not user_message:
+                    continue # ignore empty user message
+                
+                reply = await build_response(user_message, session_id)
+                CHAT_MEMORY[session_id].append(reply)
+
+                await websocket.send_json({
+                    "type": "assistant_message",
+                    "message": reply,
+                })
+                
+                await websocket.send_json({
+                "type": "typing",
+                "state": False,
+                })
                 
             except Exception as e:
                 print(f"Error in WebSocket communication: {e}")
