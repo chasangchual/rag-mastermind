@@ -15,7 +15,7 @@ class CHAT_MESSAGE_TYPE(Enum):
     UNKNOWN = "unknown"
     HELLO = "mastermind_rag_chat_hello"
     READY = "connection_ready"
-    USER_MESSAGE = "assistant_message"
+    USER_MESSAGE = "user_message"
     SYSTEM_MESSAGE = "system_message"
     PING = "ping"
     
