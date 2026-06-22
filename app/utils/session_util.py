@@ -8,6 +8,11 @@ SESSION_ID_NAME = "mastermind_session_id"
 SESSION_MAX_AGE = 60 * 60 * 24 * 7  # 7 days
 SESSION_ID_LENGTH = 64
 
+def get_session_id(raw_session_id) -> str:
+    if isinstance(raw_session_id, str) and raw_session_id.strip():
+        return SessionUtils.get_or_create_session_id(raw_session_id.strip())
+    return SessionUtils.get_or_create_session_id(None)
+
 class SessionUtils:
     @staticmethod
     def get_or_create_session_id(existing_id: Optional[str]) -> str:

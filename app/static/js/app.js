@@ -125,7 +125,7 @@
 
   function websocketUrl() {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    return `${protocol}//${window.location.host}/app/ws`;
+    return `${protocol}//${window.location.host}/app/chat/ws`;
   }
 
   function connectWebSocket() {

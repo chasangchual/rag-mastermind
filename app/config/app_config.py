@@ -18,7 +18,7 @@ class AppConfig(BaseSettings):
     db_name: str = Field(default="rag", validation_alias="POSTGRES_DB")
     db_user: str = Field(default="postgres", validation_alias="POSTGRES_USER")
     db_password: str = Field(
-        default="yourpassword", validation_alias="POSTGRES_PASSWORD"
+        default="your password", validation_alias="POSTGRES_PASSWORD"
     )
 
     redis_host: str = Field(default="localhost", validation_alias="REDIS_HOST")

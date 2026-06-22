@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
 from starlette.staticfiles import StaticFiles
-from app.routers import home_router
+from app.routers import home_router, chat_router, documents_router
 from app.utils.session_util import SessionUtils, SESSION_ID_NAME
 import os 
 
@@ -38,3 +38,5 @@ async def redirect_to_app():
     return "/app/"
 
 app.include_router(home_router.home_router)
+app.include_router(chat_router.chat_router)
+app.include_router(documents_router.documents_router)
