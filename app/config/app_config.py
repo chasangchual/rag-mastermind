@@ -47,7 +47,7 @@ class AppConfig(BaseSettings):
     ]
 
     embedding_batch_size: int = 16
-
+    
     @property
     def database_url(self) -> str:
         return f"postgresql+psycopg://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
@@ -63,6 +63,10 @@ class AppConfig(BaseSettings):
     @property
     def celery_result_backend(self) -> str:
         return f"{self.redis_url}/{self.redis_result_instance}"
+
+    @property
+    def sql_logging(self) -> bool:
+        return False if self.app_env == "production" else True
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

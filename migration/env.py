@@ -6,9 +6,9 @@ from sqlalchemy import pool
 from alembic import context
 
 from app.config import db
-from app.models.base import AuditableBase, ExternalBase
-from app.models.document import Document
-from app.models.embedding import Embedding
+from app.entity.base import AuditableBase, ExternalBase
+from app.entity.document import Document
+from app.entity.embedding import Embedding
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

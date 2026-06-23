@@ -5,6 +5,8 @@ from pgvector.sqlalchemy import Vector
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, Text
 from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import relationship
+from sqlalchemy import String, Text
+from sqlalchemy.orm import  Mapped, mapped_column
 
 from .base import ExternalBase
 
@@ -17,18 +19,18 @@ def utc_now() -> datetime:
 class Embedding(ExternalBase):
     __tablename__ = "embeddings"
 
-    doc_id = Column(
+    doc_id: Mapped[Integer] = mapped_column(
         Integer,
         ForeignKey("documents.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
-    index = Column(Integer, nullable=False)
-    text = Column(Text, nullable=False)
-    vector = Column(
+    index: Mapped[Integer] = mapped_column(Integer, nullable=False)
+    text: Mapped [Text] = mapped_column(Text, nullable=False)
+    vector: Mapped[Integer]= mapped_column(
         Vector(1536), nullable=False
     )  # 1536 dimensions for OpenAI embeddings
-    meta = Column(JSON, nullable=True)
+    meta: Mapped[Integer]= mapped_column(JSON, nullable=True)
 
     # Relationships
     document = relationship("Document", back_populates="embeddings")

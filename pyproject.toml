@@ -51,3 +51,6 @@ dependencies = [
     "typing-inspection>=0.4.2",
     "uvicorn[standard]>=0.38.0",
 ]
+
+[mypy]
+plugins = sqlalchemy.ext.mypy.plugin
