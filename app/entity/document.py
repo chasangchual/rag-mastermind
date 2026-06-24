@@ -10,7 +10,7 @@ from .base import ExternalBase
 
 
 class Document(ExternalBase):
-    __tablename__ = "documents"
+    __tablename__ = "document"
 
     hash: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     extension: Mapped[str] = mapped_column(String(50), nullable=False)
