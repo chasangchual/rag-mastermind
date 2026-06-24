@@ -13,17 +13,16 @@
   <div class="col-12 col-xl-8">
     <div class="card studio-card">
       <div class="card-header studio-card-header d-flex justify-content-between align-items-center">
-        <div><div class="section-title">Document Library</div><div class="section-subtitle">Placeholder page for source document management.</div></div>
-        <span class="badge text-bg-info-soft">128 documents</span>
+        <div><div class="section-title">Document Library</div><div class="section-subtitle">Source document entities from the backend.</div></div>
+        <span id="documentsCount" class="badge text-bg-info-soft">Loading</span>
       </div>
       <div class="table-responsive">
         <table class="table studio-table mb-0">
-          <thead><tr><th>File</th><th>Status</th><th>Chunks</th><th>Embedded</th><th>Updated</th></tr></thead>
-          <tbody>
-            <tr><td>work_orders_2025.csv</td><td><span class="badge text-bg-success-soft">Ready</span></td><td>12,430</td><td>Yes</td><td>Today</td></tr>
-            <tr><td>hvac_notes.pdf</td><td><span class="badge text-bg-success-soft">Ready</span></td><td>1,230</td><td>Yes</td><td>Today</td></tr>
-            <tr><td>survey_results.xlsx</td><td><span class="badge text-bg-warning-soft">Parsing</span></td><td>8,120</td><td>No</td><td>10 min ago</td></tr>
-            <tr><td>scanned_invoice.pdf</td><td><span class="badge text-bg-danger-soft">Failed</span></td><td>—</td><td>No</td><td>Yesterday</td></tr>
+          <thead><tr><th>Source</th><th>Status</th><th>Extension</th><th>Hash</th><th>Document ID</th></tr></thead>
+          <tbody id="documentsTableBody">
+            <tr>
+              <td colspan="5" class="text-center text-muted py-4">Loading documents...</td>
+            </tr>
           </tbody>
         </table>
       </div>

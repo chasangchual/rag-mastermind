@@ -23,6 +23,8 @@
   const traceList = document.getElementById('traceList');
   const traceLatency = document.getElementById('traceLatency');
   const traceMode = document.getElementById('traceMode');
+  const documentsCount = document.getElementById('documentsCount');
+  const documentsTableBody = document.getElementById('documentsTableBody');
 
   const sessionId = body?.dataset?.sessionId || '';
   const currentPage = body?.dataset?.page || '';
@@ -212,6 +214,135 @@
     });
   }
 
+  function formatDocumentCount(count) {
+    return `${count.toLocaleString()} ${count === 1 ? 'document' : 'documents'}`;
+  }
+
+  function statusClass(state) {
+    const normalizedState = String(state || '').toLowerCase();
+
+    if (['ready', 'complete', 'completed', 'embedded', 'processed'].includes(normalizedState)) {
+      return 'text-bg-success-soft';
+    }
+
+    if (['failed', 'error'].includes(normalizedState)) {
+      return 'text-bg-danger-soft';
+    }
+
+    if (['pending', 'parsing', 'processing', 'ingesting'].includes(normalizedState)) {
+      return 'text-bg-warning-soft';
+    }
+
+    return 'text-bg-info-soft';
+  }
+
+  function shortValue(value, maxLength = 16) {
+    const text = String(value || '').trim();
+
+    if (!text) {
+      return '--';
+    }
+
+    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+  }
+
+  function sourceLabel(documentEntity) {
+    return documentEntity.source || documentEntity.meta?.filename || documentEntity.meta?.name || 'Untitled document';
+  }
+
+  function renderDocuments(documents) {
+    if (!documentsTableBody) {
+      return;
+    }
+
+    documentsTableBody.innerHTML = '';
+
+    if (documentsCount) {
+      documentsCount.textContent = formatDocumentCount(documents.length);
+    }
+
+    if (documents.length === 0) {
+      const row = document.createElement('tr');
+      const cell = document.createElement('td');
+      cell.colSpan = 5;
+      cell.className = 'text-center text-muted py-4';
+      cell.textContent = 'No documents found.';
+      row.appendChild(cell);
+      documentsTableBody.appendChild(row);
+      return;
+    }
+
+    documents.forEach((documentEntity) => {
+      const row = document.createElement('tr');
+      const sourceCell = document.createElement('td');
+      const statusCell = document.createElement('td');
+      const extensionCell = document.createElement('td');
+      const hashCell = document.createElement('td');
+      const idCell = document.createElement('td');
+      const statusBadge = document.createElement('span');
+
+      sourceCell.textContent = sourceLabel(documentEntity);
+      statusBadge.className = `badge ${statusClass(documentEntity.state)}`;
+      statusBadge.textContent = documentEntity.state || 'unknown';
+      statusCell.appendChild(statusBadge);
+      extensionCell.textContent = documentEntity.extension || '--';
+      hashCell.textContent = shortValue(documentEntity.hash);
+      hashCell.title = documentEntity.hash || '';
+      idCell.textContent = shortValue(documentEntity.public_id, 18);
+      idCell.title = documentEntity.public_id || '';
+
+      row.appendChild(sourceCell);
+      row.appendChild(statusCell);
+      row.appendChild(extensionCell);
+      row.appendChild(hashCell);
+      row.appendChild(idCell);
+      documentsTableBody.appendChild(row);
+    });
+  }
+
+  function renderDocumentsError() {
+    if (documentsCount) {
+      documentsCount.textContent = 'Unavailable';
+    }
+
+    if (!documentsTableBody) {
+      return;
+    }
+
+    documentsTableBody.innerHTML = '';
+
+    const row = document.createElement('tr');
+    const cell = document.createElement('td');
+    cell.colSpan = 5;
+    cell.className = 'text-center text-muted py-4';
+    cell.textContent = 'Unable to load documents.';
+    row.appendChild(cell);
+    documentsTableBody.appendChild(row);
+  }
+
+  async function loadDocuments() {
+    if (currentPage !== 'documents' || !documentsTableBody) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/app/api/documents', {
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Documents request failed with ${response.status}`);
+      }
+
+      const documents = await response.json();
+      renderDocuments(Array.isArray(documents) ? documents : []);
+    } catch (error) {
+      renderDocumentsError();
+    }
+  }
+
   function sendChatMessage() {
     const value = (chatInput?.value || '').trim();
 
@@ -247,4 +378,5 @@
   });
 
   connectWebSocket();
+  loadDocuments();
 })();
