@@ -6,8 +6,8 @@ from app.config.db import db_session
 from app.entity.document import Document
 
 class DocumentRepository(RepositoryBase):
-    def __init__(self, session=None):
-        super().__init__(session)
+    def __init__(self, db_session=None):
+        super().__init__(db_session)
 
     def find_all(self, session: db_session) -> List[Document]:
         return self._get_session(session).query(Document).all()

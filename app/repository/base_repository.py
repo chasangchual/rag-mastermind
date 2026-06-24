@@ -8,11 +8,11 @@ class RepositoryBase:
     Base repository class providing shared database session management 
     for data access layers.
     """
-    def __init__(self, session=None):
+    def __init__(self, db_session=None):
         """
         Initializes the repository with an optional SQLAlchemy session.
         """
-        self.session = session
+        self.session = db_session
 
     def set_session(self, session: db_session):
         """
