@@ -10,7 +10,7 @@ from sqlalchemy import String, Text, Index
 from sqlalchemy.orm import  Mapped, mapped_column
 
 from .base import ExternalBase
-from app.entity.document import Document
+from app.model.document import Document
 
 def utc_now() -> datetime:
     """Return current UTC datetime."""

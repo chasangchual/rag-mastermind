@@ -1,30 +1,31 @@
-import uuid
-from uuid import UUID
+from datetime import datetime, timezone
+from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import String, Text
+from sqlalchemy.orm import  Mapped, mapped_column
+from sqlalchemy.dialects.postgresql import JSON, UUID
+from sqlalchemy.orm import relationship
 
-from app.entity.document import Document
+from .base import ExternalBase
 
 
-class DocumentRequestModel(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+class Document(ExternalBase):
+    __tablename__ = "document"
 
-    public_id: UUID = Field(default_factory=uuid.uuid4)
-    hash: str
-    extension: str
-    text: str | None = None
-    source: str | None = None
-    meta: dict | None = None
-    state: str = "pending"
+    hash: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    extension: Mapped[str] = mapped_column(String(50), nullable=False)
+    text: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
+    source: Mapped[str | None] = mapped_column(String(500), nullable=True, default=None)
+    meta: Mapped[dict | None] = mapped_column(JSON, nullable=True, default=None)
+    state: Mapped[str] = mapped_column(String(50), default="pending", nullable=False)
 
-    @classmethod
-    def from_entity(cls, document: Document) -> "DocumentRequestModel":
-        return cls(
-            public_id=document.public_id,
-            hash=document.hash,
-            extension=document.extension,
-            text=document.text,
-            source=document.source,
-            meta=document.meta,
-            state=document.state,
-        )
+    # Relationships
+    embeddings: Mapped[list] = relationship(
+        "Embedding",
+        back_populates="document",
+        cascade="all, delete-orphan",
+        default_factory=list,
+    )
+
+    def __repr__(self):
+        return f"<Document(id={self.id}, hash='{self.hash}', extension='{self.extension}')>"
