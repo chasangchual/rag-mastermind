@@ -1,12 +1,14 @@
-from datetime import datetime, timezone
-from uuid import uuid4
+from typing import TYPE_CHECKING
 
 from sqlalchemy import String, Text
 from sqlalchemy.orm import  Mapped, mapped_column
-from sqlalchemy.dialects.postgresql import JSON, UUID
+from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import relationship
 
 from .base import ExternalBase
+
+if TYPE_CHECKING:
+    from app.model.embedding import Embedding
 
 
 class Document(ExternalBase):
@@ -20,7 +22,7 @@ class Document(ExternalBase):
     state: Mapped[str] = mapped_column(String(50), default="pending", nullable=False)
 
     # Relationships
-    embeddings: Mapped[list] = relationship(
+    embeddings: Mapped[list["Embedding"]] = relationship(
         "Embedding",
         back_populates="document",
         cascade="all, delete-orphan",

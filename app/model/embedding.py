@@ -1,21 +1,18 @@
-from datetime import datetime, timezone
+from typing import TYPE_CHECKING
+
 from typing import Optional, Dict, Any
-from uuid import uuid4
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, Text
-from sqlalchemy.dialects.postgresql import JSON, UUID
+from sqlalchemy import ForeignKey, Integer, Text
+from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import relationship
-from sqlalchemy import String, Text, Index
-from sqlalchemy.orm import  Mapped, mapped_column
+from sqlalchemy import Index
+from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import ExternalBase
-from app.model.document import Document
 
-def utc_now() -> datetime:
-    """Return current UTC datetime."""
-    return datetime.now(timezone.utc)
-
+if TYPE_CHECKING:
+    from app.model.document import Document
 
 class Embedding(ExternalBase):
     __tablename__ = "embedding"
@@ -34,7 +31,7 @@ class Embedding(ExternalBase):
     meta: Mapped[Optional[Dict[str, Any]]]= mapped_column(JSON, nullable=True)
 
     # Relationships
-    document: Mapped["Document"] = relationship("Document", back_populates="embedding")
+    document: Mapped["Document"] = relationship("Document", back_populates="embeddings")
 
     __table_args__ = (
         Index(

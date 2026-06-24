@@ -3,7 +3,7 @@ from uuid import UUID
 
 from app.repository.base_repository import RepositoryBase
 from app.config.db import db_session
-from app.model.document import Document
+from app.model import Document
 
 class DocumentRepository(RepositoryBase):
     def __init__(self, db_session=None):
