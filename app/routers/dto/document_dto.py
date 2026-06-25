@@ -3,8 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.model.document import Document
-
+from app.model.document import Document, DocumentStatus
 
 class NewDocumentRequest(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -19,7 +18,7 @@ class NewDocumentRequest(BaseModel):
             text=None,
             source=self.source,
             meta=None,
-            state="pending",
+            state=DocumentStatus.PENDING,
         )
 
 
@@ -32,7 +31,7 @@ class DocumentResponse(BaseModel):
     text: str | None = None
     source: str | None = None
     meta: dict | None = None
-    state: str = "pending"
+    state: DocumentStatus = DocumentStatus.PENDING
 
     @classmethod
     def from_entity(cls, document: Document) -> "DocumentResponse":

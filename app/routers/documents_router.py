@@ -1,13 +1,16 @@
 import hashlib
+from pydoc import doc
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, UploadFile, HTTPException
 
 from app.config.db import db_session
 from app.model.document import Document
 from app.repository.document_repository import DocumentRepository
 from app.routers.dto.document_dto import DocumentResponse, NewDocumentRequest
+from starlette import status
+from starlette.status import HTTP_400_BAD_REQUEST
 
 documents_router = APIRouter(
     prefix="/app/api/documents"
@@ -31,7 +34,7 @@ def text_from_upload(filename: str, content_type: str | None, content: bytes) ->
 async def document_from_upload(file: UploadFile) -> Document:
     content = await file.read()
     filename = Path(file.filename or "uploaded-file").name
-    extension = Path(filename).suffix.lower().lstrip(".") or None
+    extension = Path(filename).suffix.lower().lstrip(".") or ''
 
     return Document(
         public_id=uuid.uuid4(),
@@ -70,6 +73,8 @@ async def create_document(
     document_repository: DocumentRepository = Depends(get_document_repository),
 ) -> DocumentResponse:
     document = document_repository.add(request.to_entity(), session=db_session)
+    if document is None: 
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"failed to create a new document with [{request.source}] not found")
     return DocumentResponse.from_entity(document)
 
 
