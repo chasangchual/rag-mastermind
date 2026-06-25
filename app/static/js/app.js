@@ -25,6 +25,9 @@
   const traceMode = document.getElementById('traceMode');
   const documentsCount = document.getElementById('documentsCount');
   const documentsTableBody = document.getElementById('documentsTableBody');
+  const chooseFilesButton = document.getElementById('chooseFilesButton');
+  const documentFileInput = document.getElementById('documentFileInput');
+  const documentUploadStatus = document.getElementById('documentUploadStatus');
 
   const sessionId = body?.dataset?.sessionId || '';
   const currentPage = body?.dataset?.page || '';
@@ -320,6 +323,15 @@
     documentsTableBody.appendChild(row);
   }
 
+  function setDocumentUploadStatus(message, className = 'small text-muted mt-3') {
+    if (!documentUploadStatus) {
+      return;
+    }
+
+    documentUploadStatus.className = className;
+    documentUploadStatus.textContent = message;
+  }
+
   async function loadDocuments() {
     if (currentPage !== 'documents' || !documentsTableBody) {
       return;
@@ -340,6 +352,57 @@
       renderDocuments(Array.isArray(documents) ? documents : []);
     } catch (error) {
       renderDocumentsError();
+    }
+  }
+
+  async function uploadDocuments(files) {
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    const formData = new FormData();
+    const fileCount = files.length;
+
+    Array.from(files).forEach((file) => {
+      formData.append('files', file);
+    });
+
+    if (chooseFilesButton) {
+      chooseFilesButton.disabled = true;
+    }
+    setDocumentUploadStatus(
+      `Uploading ${fileCount.toLocaleString()} ${fileCount === 1 ? 'file' : 'files'}...`,
+    );
+
+    try {
+      const response = await fetch('/app/api/documents/upload', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload request failed with ${response.status}`);
+      }
+
+      await response.json();
+      setDocumentUploadStatus(
+        `Uploaded ${fileCount.toLocaleString()} ${fileCount === 1 ? 'file' : 'files'}.`,
+        'small text-success mt-3',
+      );
+      await loadDocuments();
+    } catch (error) {
+      setDocumentUploadStatus('Unable to upload selected files.', 'small text-danger mt-3');
+    } finally {
+      if (chooseFilesButton) {
+        chooseFilesButton.disabled = false;
+      }
+
+      if (documentFileInput) {
+        documentFileInput.value = '';
+      }
     }
   }
 
@@ -375,6 +438,14 @@
     if (event.key === 'Enter') {
       sendChatMessage();
     }
+  });
+
+  chooseFilesButton?.addEventListener('click', function () {
+    documentFileInput?.click();
+  });
+
+  documentFileInput?.addEventListener('change', function () {
+    uploadDocuments(this.files);
   });
 
   connectWebSocket();

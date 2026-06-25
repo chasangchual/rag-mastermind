@@ -5,8 +5,10 @@
         <div class="upload-icon">↑</div>
         <h5>Upload documents</h5>
         <p>PDF, DOCX, TXT, MD, CSV, XLSX and HTML files.</p>
-        <button class="btn btn-primary w-100">Choose files</button>
-        <button class="btn btn-outline-secondary w-100 mt-2">Start ingestion</button>
+        <input id="documentFileInput" class="d-none" type="file" multiple>
+        <button id="chooseFilesButton" class="btn btn-primary w-100" type="button">Choose files</button>
+        <button class="btn btn-outline-secondary w-100 mt-2" type="button">Start ingestion</button>
+        <div id="documentUploadStatus" class="small text-muted mt-3" role="status" aria-live="polite"></div>
       </div>
     </div>
   </div>

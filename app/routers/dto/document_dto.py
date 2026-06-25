@@ -6,19 +6,36 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.model.document import Document
 
 
-class DocumentRequestModel(BaseModel):
+class NewDocumentRequest(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    source: str
+
+    def to_entity(self) -> Document:
+        return Document(
+            public_id=uuid.uuid4(),
+            hash=None,
+            extension=None,
+            text=None,
+            source=self.source,
+            meta=None,
+            state="pending",
+        )
+
+
+class DocumentResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     public_id: UUID = Field(default_factory=uuid.uuid4)
-    hash: str
-    extension: str
+    hash: str | None = None
+    extension: str | None = None
     text: str | None = None
     source: str | None = None
     meta: dict | None = None
     state: str = "pending"
 
     @classmethod
-    def from_entity(cls, document: Document) -> "DocumentRequestModel":
+    def from_entity(cls, document: Document) -> "DocumentResponse":
         return cls(
             public_id=document.public_id,
             hash=document.hash,
