@@ -20,13 +20,13 @@ class Embedding(ExternalBase):
     doc_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("document.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
         index=True,
     )
-    index: Mapped[int] = mapped_column(Integer, nullable=False)
-    text: Mapped [str] = mapped_column(Text, nullable=False)
+    index: Mapped[int] = mapped_column(Integer, nullable=True)
+    text: Mapped [str] = mapped_column(Text, nullable=True)
     vector: Mapped[Vector]= mapped_column(
-        Vector(1536), nullable=False
+        Vector(1536), nullable=True
     )  # 1536 dimensions for OpenAI embeddings
     meta: Mapped[Optional[Dict[str, Any]]]= mapped_column(JSON, nullable=True)
 

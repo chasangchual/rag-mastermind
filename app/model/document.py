@@ -14,10 +14,10 @@ if TYPE_CHECKING:
 class Document(ExternalBase):
     __tablename__ = "document"
 
-    hash: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-    extension: Mapped[str] = mapped_column(String(50), nullable=False)
+    hash: Mapped[str] = mapped_column(String(255), nullable=True, index=True)
+    extension: Mapped[str] = mapped_column(String(50), nullable=True)
     text: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
-    source: Mapped[str | None] = mapped_column(String(500), nullable=True, default=None)
+    source: Mapped[str | None] = mapped_column(String(500), nullable=False, default=None)
     meta: Mapped[dict | None] = mapped_column(JSON, nullable=True, default=None)
     state: Mapped[str] = mapped_column(String(50), default="pending", nullable=False)
 

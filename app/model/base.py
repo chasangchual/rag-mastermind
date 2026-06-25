@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, Integer, func
+from sqlalchemy import DateTime, Integer, text
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, MappedAsDataclass
 
@@ -13,15 +13,14 @@ class AuditableBase(MappedAsDataclass, DeclarativeBase):
     # init=False tells Python NOT to include this in the constructor, since the DB generates it automatically via autoincrement.
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True, init=False)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        server_default=func.now(),
+        DateTime,
+        server_default=text("now()"),
         nullable=False,
         init=False,
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now(),
+        DateTime,
+        server_default=text("now()"),
         nullable=False,
         init=False,
     )
