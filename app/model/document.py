@@ -1,15 +1,24 @@
+from termios import PENDIN
 from typing import TYPE_CHECKING
 
-from sqlalchemy import String, Text
+from sqlalchemy import String, Text, Enum
 from sqlalchemy.orm import  Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import relationship
+import enum
 
 from .base import ExternalBase
 
 if TYPE_CHECKING:
     from app.model.embedding import Embedding
 
+class DocumentStatus(enum.Enum):
+    PENDING = 'pending',
+    PROGRESS = 'progress',
+    PAUSED = 'paused',
+    CANCELED = 'canceled',
+    COMPLETED = 'completed',
+    FAILED = 'failed',
 
 class Document(ExternalBase):
     __tablename__ = "document"
@@ -19,9 +28,9 @@ class Document(ExternalBase):
     text: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
     source: Mapped[str | None] = mapped_column(String(500), nullable=False, default=None)
     meta: Mapped[dict | None] = mapped_column(JSON, nullable=True, default=None)
-    state: Mapped[str] = mapped_column(String(50), default="pending", nullable=False)
+    state: Mapped[str] = mapped_column(Enum(DocumentStatus, name = 'state'), default=DocumentStatus.PENDING, nullable=False)
 
-    # Relationships
+    
     embeddings: Mapped[list["Embedding"]] = relationship(
         "Embedding",
         back_populates="document",
