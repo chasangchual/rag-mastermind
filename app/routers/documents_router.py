@@ -1,16 +1,17 @@
 import hashlib
-from pydoc import doc
 import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, UploadFile, HTTPException
 
+from app.config.app_config import get_config
 from app.config.db import db_session
 from app.model.document import Document
 from app.repository.document_repository import DocumentRepository
 from app.routers.dto.document_dto import DocumentResponse, NewDocumentRequest
+from app.model.document import DocumentStatus
+
 from starlette import status
-from starlette.status import HTTP_400_BAD_REQUEST
 
 documents_router = APIRouter(
     prefix="/app/api/documents"
@@ -31,23 +32,35 @@ def text_from_upload(filename: str, content_type: str | None, content: bytes) ->
     return None
 
 
+def save_upload_file(filename: str, content: bytes) -> Path:
+    upload_dir = get_config().working_directory / "uploads"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    storage_name = f"{uuid.uuid4()}_{Path(filename).name}"
+    local_path = upload_dir / storage_name
+    local_path.write_bytes(content)
+    return local_path
+
+
 async def document_from_upload(file: UploadFile) -> Document:
     content = await file.read()
     filename = Path(file.filename or "uploaded-file").name
     extension = Path(filename).suffix.lower().lstrip(".") or ''
+    local_path = save_upload_file(filename, content)
 
     return Document(
         public_id=uuid.uuid4(),
         hash=hashlib.sha256(content).hexdigest(),
         extension=extension,
         text=text_from_upload(filename, file.content_type, content),
-        source=filename,
+        source=str(local_path),
         meta={
             "filename": filename,
             "content_type": file.content_type,
             "size": len(content),
+            "local_path": str(local_path),
         },
-        state="uploaded",
+        state=DocumentStatus.PENDING,
     )
 
 

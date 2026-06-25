@@ -1,4 +1,3 @@
-from termios import PENDIN
 from typing import TYPE_CHECKING
 
 from sqlalchemy import String, Text, Enum
