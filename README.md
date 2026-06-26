@@ -67,6 +67,9 @@ uv pip install "psycopg[binary,pool]"
 ```
 ---
 
+### Install dramatiq 
+
+uv pip install -U 'dramatiq[rabbitmq, watch]'
 
 ## 2. Files
 
