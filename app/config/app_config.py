@@ -31,7 +31,7 @@ class AppConfig(BaseSettings):
         default="1", validation_alias="REDIS_RESULT_INSTANCE"
     )
 
-    working_directory: Path = Path("/app/data")
+    working_directory: Path = Path("/Users/sangchual/tmp")
 
     recursive: bool = False
     supported_extensions: list[str] = [

@@ -2,10 +2,14 @@ from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
 from starlette.staticfiles import StaticFiles
 from app.routers import home_router, chat_router, documents_router
+from app.repository.repository_factory import RepositoryFactory
 from app.utils.session_util import SessionUtils, SESSION_ID_NAME
 import os 
 
 app = FastAPI()
+container = RepositoryFactory()
+container.wire(modules=[documents_router])
+app.container = container
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 static_dir = os.path.join(current_dir, "static")
