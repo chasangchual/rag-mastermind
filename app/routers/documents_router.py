@@ -6,11 +6,10 @@ from fastapi import APIRouter, Depends, File, UploadFile, HTTPException
 
 from app.config.app_config import get_config
 from app.config.db import db_session
-from app.model.document import Document
+from app.model.document import Document, DocumentStatus
 from app.repository.document_repository import DocumentRepository
 from app.repository.repository_factory import RepositoryFactory
 from app.routers.dto.document_dto import DocumentResponse, NewDocumentRequest
-from app.model.document import DocumentStatus
 from dependency_injector.wiring import inject, Provide
 
 from starlette import status
