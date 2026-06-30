@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from typing import Optional, Dict, Any
@@ -31,7 +33,7 @@ class Embedding(ExternalBase):
     meta: Mapped[Optional[Dict[str, Any]]]= mapped_column(JSON, nullable=True)
 
     # Relationships
-    document: Mapped["Document"] = relationship("Document", back_populates="embeddings")
+    document: Mapped[Document] = relationship(Document, back_populates="embeddings")
 
     __table_args__ = (
         Index(
