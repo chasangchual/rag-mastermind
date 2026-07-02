@@ -9,6 +9,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from app.model.document import Document
 
+
 @dataclass(slots=True)
 class Chunk:
     """A chunk generated from a source document."""
@@ -18,6 +19,15 @@ class Chunk:
     index: int
     text: str
     metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(slots=True)
+class EmbeddedChunk:
+    """A chunk plus its embedding vector."""
+
+    chunk: Chunk
+    vector: list[float]
+
 
 class DocumentSplitter(ABC):
     @abstractmethod
