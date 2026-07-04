@@ -8,7 +8,7 @@ from typing import Any
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from app.model.document import Document
-from app.service.embedding.loader.base_loader import ContentSource
+from app.service.embedding.loaders.base_loader import ContentSource
 
 
 @dataclass(slots=True)
