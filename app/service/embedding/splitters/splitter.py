@@ -8,6 +8,7 @@ from typing import Any
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from app.model.document import Document
+from app.service.embedding.loader.base_loader import ContentSource
 
 
 @dataclass(slots=True)
@@ -31,7 +32,7 @@ class EmbeddedChunk:
 
 class DocumentSplitter(ABC):
     @abstractmethod
-    def split(self, document: Document) -> list[Chunk]:
+    def split(self, contentSource: ContentSource) -> list[Chunk]:
         raise NotImplementedError
 
 
@@ -42,21 +43,21 @@ class RecursiveTextSplitter(DocumentSplitter):
             chunk_overlap=chunk_overlap,
         )
 
-    def split(self, document: Document) -> list[Chunk]:
-        if document.text is None:
+    def split(self, contentSource: ContentSource) -> list[Chunk]:
+        if contentSource.text is None:
             return []
 
-        pieces = self._splitter.split_text(document.text)
+        pieces = self._splitter.split_text(contentSource.text)
         return [
             Chunk(
                 id=str(uuid4()),
-                document_id=document.public_id,
+                document_id=contentSource.public_id,
                 index=idx,
                 text=chunk_text,
                 metadata={
-                    **(document.meta or {}),
-                    "source": document.source,
-                    "ext": document.extension,
+                    **(contentSource.meta or {}),
+                    "source": contentSource.source,
+                    "ext": contentSource.extension,
                 },
             )
             for idx, chunk_text in enumerate(pieces)

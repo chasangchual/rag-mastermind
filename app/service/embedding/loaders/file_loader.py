@@ -28,7 +28,7 @@ class DocumentLoader(ContentSourceLoader):
 
 
 class TextFileLoader(DocumentLoader):
-    extensions = {".txt", ".md", ".rst"}
+    extensions = {".txt", ".rst"}
 
     def __init__(self, encoding: str = "utf-8") -> None:
         self._encoding = encoding

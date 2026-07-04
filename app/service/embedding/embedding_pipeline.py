@@ -1,10 +1,24 @@
 from __future__ import annotations
 
-from app.service.embedding.loaders.base_loader import ContentSourceLoaderRegistry
-from app.service.embedding.splitters.splitter import DocumentSplitter, EmbeddedChunk, Chunk
-from app.service.embedding.embedders.base_embedder import EmbeddingProvider
 from dataclasses import dataclass, field
 
+from typing import List
+from sqlalchemy.orm import registry
+
+from app.service.embedding import build_default_registry
+from app.service.embedding.loaders.base_loader import ContentSource, ContentSourceLoaderRegistry
+from app.service.embedding.splitters.splitter import (
+    DocumentSplitter,
+    RecursiveTextSplitter,
+    EmbeddedChunk,
+    Chunk,
+)
+from app.service.embedding.embedders.base_embedder import (
+    EmbeddingProvider,
+    HashEmbeddingProvider,
+)
+
+from app.service.embedding.embedders.gemini_embedder import GeminiEmbeddingProvider
 
 @dataclass(slots=True)
 class PipelineConfig:
@@ -41,6 +55,16 @@ class EmbeddingPipeline:
         self._splitter = splitter
         self._embedder = embedder
         self._config = config or PipelineConfig()
+
+    def process_document(self, file_path: str) ->  list[EmbeddedChunk]:
+        content_sources: List[ContentSource] = self._registry.load(file_path)
+
+        chunks: list[Chunk] = []
+        for content_source in content_sources:
+            chunks.extend(self._splitter.split(content_source))
+
+        return self._embed_chunks(chunks)
+        
     def _embed_chunks(self, chunks: list[Chunk]) -> list[EmbeddedChunk]:
         if not chunks:
             return []
@@ -51,10 +75,30 @@ class EmbeddingPipeline:
             batch = chunks[start : start + batch_size]
             vectors = self._embedder.embed_texts([chunk.text for chunk in batch])
             if len(vectors) != len(batch):
-                raise RuntimeError("Embedding provider returned mismatched vector count")
+                raise RuntimeError(
+                    "Embedding provider returned mismatched vector count"
+                )
 
             embedded.extend(
                 EmbeddedChunk(chunk=chunk, vector=vector)
                 for chunk, vector in zip(batch, vectors, strict=True)
             )
         return embedded
+
+
+def build_default_pipeline(
+    config: PipelineConfig | None = None,
+    embedder: EmbeddingProvider | None = None,
+) -> EmbeddingPipeline:
+    cfg = config or PipelineConfig()
+    return EmbeddingPipeline(
+        registry=build_default_registry(text_encoding=cfg.text_encoding),
+        splitter=RecursiveTextSplitter(
+            chunk_size=cfg.chunk_size, chunk_overlap=cfg.chunk_overlap
+        ),
+        embedder=embedder or HashEmbeddingProvider(),
+        config=cfg,
+    )
+
+
+default_pipeline = build_default_pipeline(embedder=GeminiEmbeddingProvider())
