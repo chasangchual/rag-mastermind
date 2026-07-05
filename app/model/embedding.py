@@ -14,20 +14,25 @@ from sqlalchemy.orm import Mapped, mapped_column
 from .base import ExternalBase
 from app.model.document import Document
 
+# pgvector HNSW supports regular vector only up to 2,000 dimensions;
+# 3,072 would require halfvec or another indexing strategy.
+# pgvector limits (https://github.com/pgvector/pgvector)
+EMBEDDING_VECTOR_DIMENSIONS = 1536
+
 class Embedding(ExternalBase):
     __tablename__ = "embedding"
 
     doc_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("document.id", ondelete="CASCADE"),
-        nullable=True,
+        nullable=False,
         index=True,
     )
-    index: Mapped[int] = mapped_column(Integer, nullable=True)
-    text: Mapped [str] = mapped_column(Text, nullable=True)
-    vector: Mapped[Vector]= mapped_column(
-        Vector(1536), nullable=True
-    )  # 1536 dimensions for OpenAI embeddings
+    index: Mapped[int] = mapped_column(Integer, nullable=False)
+    text: Mapped [str] = mapped_column(Text, nullable=False)
+    vector: Mapped[list[float]] = mapped_column(
+        Vector(EMBEDDING_VECTOR_DIMENSIONS), nullable=False
+    )
     meta: Mapped[Optional[Dict[str, Any]]]= mapped_column(JSON, nullable=True)
 
     # Relationships

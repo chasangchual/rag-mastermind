@@ -28,4 +28,11 @@ class AuditableBase(MappedAsDataclass, DeclarativeBase):
 
 class ExternalBase(AuditableBase):
     __abstract__ = True
-    public_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), unique=True, index=True, default=uuid4, nullable=False, kw_only=True)
+    public_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        unique=True,
+        index=True,
+        default_factory=uuid4,
+        nullable=False,
+        kw_only=True,
+    )

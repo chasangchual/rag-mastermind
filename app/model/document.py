@@ -27,7 +27,7 @@ class Document(ExternalBase):
     text: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
     source: Mapped[str | None] = mapped_column(String(500), nullable=False, default=None)
     meta: Mapped[dict | None] = mapped_column(JSON, nullable=True, default=None)
-    state: Mapped[DocumentStatus] = mapped_column(Enum(DocumentStatus, name = 'state'), default=DocumentStatus.PENDING, nullable=False)
+    state: Mapped[DocumentStatus] = mapped_column(Enum(DocumentStatus, name = 'documentstatus'), default=DocumentStatus.PENDING, nullable=False)
 
     
     embeddings: Mapped[list["Embedding"]] = relationship(
