@@ -12,9 +12,7 @@ from sqlalchemy import Index
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import ExternalBase
-
-if TYPE_CHECKING:
-    from app.model.document import Document
+from app.model.document import Document
 
 class Embedding(ExternalBase):
     __tablename__ = "embedding"

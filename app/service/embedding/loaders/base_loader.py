@@ -11,7 +11,6 @@ from typing import List, Any
 class ContentSource:
     """Normalized document object used across the ingestion pipeline."""
 
-    id: str
     source: str
     type: str
     text: str
@@ -51,7 +50,6 @@ class ContentSourceLoaderRegistry:
 
 def build_content_source(source: str | Path, doc_type: str, text: str, metadata: dict | None = None) -> ContentSource:
     return ContentSource(
-        id=str(uuid4()),
         source=str(source),
         type=doc_type,
         text=text,

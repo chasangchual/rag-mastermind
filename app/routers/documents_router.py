@@ -1,6 +1,9 @@
 import hashlib
+import logging
 import uuid
 from pathlib import Path
+from typing import Optional
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, UploadFile, HTTPException
 
@@ -13,6 +16,9 @@ from app.routers.dto.document_dto import DocumentResponse, NewDocumentRequest
 from dependency_injector.wiring import inject, Provide
 
 from starlette import status
+from app.service.embedding.embedding_pipeline import build_default_pipeline
+from app.service.embedding.embedders.gemini_embedder import GeminiEmbeddingProvider
+from app.service.embedding.splitters.splitter import EmbeddedChunk
 
 documents_router = APIRouter(prefix="/app/api/documents")
 
@@ -73,11 +79,13 @@ async def document_from_upload(file: UploadFile) -> Document:
     )
 
 
-@documents_router.get("", status_code=200, response_model=list[DocumentResponse])
+@documents_router.get("", status_code=status.HTTP_200_OK, response_model=list[DocumentResponse])
 @inject
 async def get_documents(
     db_session: db_session,
-    document_repository: DocumentRepository = Depends(Provide[RepositoryFactory.document_repository]),
+    document_repository: DocumentRepository = Depends(
+        Provide[RepositoryFactory.document_repository]
+    ),
 ) -> list[DocumentResponse]:
     """
     Endpoint to retrieve and display all documents.
@@ -89,7 +97,7 @@ async def get_documents(
     return [DocumentResponse.from_entity(document) for document in documents]
 
 
-@documents_router.post("", status_code=201, response_model=DocumentResponse)
+@documents_router.post("", status_code=status.HTTP_201_CREATED, response_model=DocumentResponse)
 @inject
 async def create_document(
     request: NewDocumentRequest,
@@ -108,7 +116,7 @@ async def create_document(
 
 
 @documents_router.post(
-    "/upload", status_code=201, response_model=list[DocumentResponse]
+    "/upload", status_code=status.HTTP_201_CREATED, response_model=list[DocumentResponse]
 )
 @inject
 async def upload_documents(
@@ -125,3 +133,43 @@ async def upload_documents(
         documents.append(document_repository.add(document, db_session=db_session))
 
     return [DocumentResponse.from_entity(document) for document in documents]
+
+
+@documents_router.post(
+    "/{public_id}/embeddings",
+    status_code=status.HTTP_201_CREATED,
+    response_model=bool,
+)
+@inject
+async def embedding_documents(
+    public_id: UUID,
+    db_session: db_session,
+    document_repository: DocumentRepository = Depends(
+        Provide[RepositoryFactory.document_repository]
+    ),
+) -> bool:
+    document: Optional[Document] = document_repository.find_by_public_id(
+        public_id, db_session=db_session
+    )
+
+    if(document is None):
+        return  False
+
+    if document.source is None:
+        document_repository.update_State(document, DocumentStatus.FAILED, db_session)
+        ex = ValueError(f"Document source is None for document_id: {public_id}. Cannot process document.")
+        logging.error(ex)
+        raise ex
+
+    document_repository.update_State(document, DocumentStatus.PROGRESS, db_session)
+    try:
+        # embedding_document.send(document.source)
+        embedding_pipeline = build_default_pipeline(embedder=GeminiEmbeddingProvider())
+        embedded_chunks: list[EmbeddedChunk] = embedding_pipeline.process_document(public_id, document.source)
+
+        document_repository.update_State(document, DocumentStatus.COMPLETED, db_session)
+        return True
+    except Exception as ex:
+        document_repository.update_State(document, DocumentStatus.FAILED, db_session)
+        logging.error(ex)
+        raise

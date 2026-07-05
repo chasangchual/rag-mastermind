@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from typing import List
+from uuid import UUID
 from sqlalchemy.orm import registry
 
 from app.service.embedding import build_default_registry
@@ -56,12 +57,12 @@ class EmbeddingPipeline:
         self._embedder = embedder
         self._config = config or PipelineConfig()
 
-    def process_document(self, file_path: str) ->  list[EmbeddedChunk]:
+    def process_document(self, public_id: UUID, file_path: str) ->  list[EmbeddedChunk]:
         content_sources: List[ContentSource] = self._registry.load(file_path)
 
         chunks: list[Chunk] = []
         for content_source in content_sources:
-            chunks.extend(self._splitter.split(content_source))
+            chunks.extend(self._splitter.split(public_id, content_source))
 
         return self._embed_chunks(chunks)
         

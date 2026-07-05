@@ -4,4 +4,4 @@ from app.config.db import db_session
 
 class RepositoryFactory(containers.DeclarativeContainer):
     config = providers
-    document_repository = providers.Factory(DocumentRepository, db_session = db_session)
+    document_repository = providers.Factory(DocumentRepository)

@@ -22,6 +22,28 @@ from app.service.embedding.embedders.gemini_embedder import GeminiEmbeddingProvi
     max_backoff=300_000,
     time_limit=30 * 60 * 1000,
 )
+def embedding_document(
+    public_id: UUID,
+    document_path: str
+) -> list[EmbeddedChunk]:
+    embedding_pipeline = build_default_pipeline(embedder=GeminiEmbeddingProvider())
+    try:
+        embedded_chunks: list[EmbeddedChunk] = embedding_pipeline.process_document(public_id, document_path)
+        # logging
+        return embedded_chunks
+    except Exception as ex:
+        logging.error(ex)
+        raise
+
+
+@inject
+@dramatiq.actor(
+    queue_name="document_embedding",
+    max_retries=3,
+    min_backoff=10_000,
+    max_backoff=300_000,
+    time_limit=30 * 60 * 1000,
+)
 def process_document(
     document_id: UUID,
     db_session: db_session,
@@ -43,7 +65,7 @@ def process_document(
 
     document_repository.update_State(document, DocumentStatus.PROGRESS, db_session)
     try:
-        embedded_chunks: list[EmbeddedChunk] = embedding_pipeline.process_document(document.source)
+        embedded_chunks: list[EmbeddedChunk] = embedding_pipeline.process_document(document_id, document.source)
 
         document.state = DocumentStatus.COMPLETED
         document_repository.update_State(document, DocumentStatus.COMPLETED, db_session)

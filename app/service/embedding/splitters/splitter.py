@@ -32,7 +32,7 @@ class EmbeddedChunk:
 
 class DocumentSplitter(ABC):
     @abstractmethod
-    def split(self, contentSource: ContentSource) -> list[Chunk]:
+    def split(self, public_id: UUID, contentSource: ContentSource) -> list[Chunk]:
         raise NotImplementedError
 
 
@@ -43,7 +43,7 @@ class RecursiveTextSplitter(DocumentSplitter):
             chunk_overlap=chunk_overlap,
         )
 
-    def split(self, contentSource: ContentSource) -> list[Chunk]:
+    def split(self, public_id: UUID, contentSource: ContentSource) -> list[Chunk]:
         if contentSource.text is None:
             return []
 
@@ -51,13 +51,13 @@ class RecursiveTextSplitter(DocumentSplitter):
         return [
             Chunk(
                 id=str(uuid4()),
-                document_id=contentSource.public_id,
+                document_id=public_id,
                 index=idx,
                 text=chunk_text,
                 metadata={
-                    **(contentSource.meta or {}),
+                    **(contentSource.metadata or {}),
                     "source": contentSource.source,
-                    "ext": contentSource.extension,
+                    "ext": contentSource.type,
                 },
             )
             for idx, chunk_text in enumerate(pieces)
