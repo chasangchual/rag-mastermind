@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PDF RAG Golden Test Case",
+  "type": "object",
+  "required": [
+    "id",
+    "category",
+    "difficulty",
+    "question",
+    "expected_answer",
+    "expected_sources",
+    "required_facts",
+    "forbidden_claims",
+    "answerability"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "difficulty": {
+      "enum": [
+        "easy",
+        "medium",
+        "hard"
+      ]
+    },
+    "question": {
+      "type": "string"
+    },
+    "expected_answer": {
+      "type": "string"
+    },
+    "expected_sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "file",
+          "source_id",
+          "pages"
+        ],
+        "properties": {
+          "file": {
+            "type": "string"
+          },
+          "source_id": {
+            "type": "string"
+          },
+          "pages": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        }
+      }
+    },
+    "required_facts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "forbidden_claims": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "answerability": {
+      "type": "string"
+    }
+  }
+}

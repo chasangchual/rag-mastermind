@@ -187,7 +187,7 @@ async def embedding_documents(
                 Embedding(
                     public_id=uuid.uuid4(),
                     doc_id=document.id,
-                    index=embedded_chunk.chunk.index,
+                    index=embedded_chunk.chunk.metadata.get("page", 0),
                     text=embedded_chunk.chunk.text,
                     vector=embedded_chunk.vector,
                     meta=embedded_chunk.chunk.metadata,

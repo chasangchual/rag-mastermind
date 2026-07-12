@@ -11,3 +11,6 @@ wheels/
 
 # Application configuration
 .env
+
+# Windows/WSL metadata
+*:Zone.Identifier

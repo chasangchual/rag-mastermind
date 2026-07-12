@@ -1,0 +1,62 @@
+[
+  {
+    "file": "01_hvac_emergency_response_policy.pdf",
+    "size_bytes": 3146,
+    "expected_kind": "text PDF"
+  },
+  {
+    "file": "02_service_level_policy.pdf",
+    "size_bytes": 2947,
+    "expected_kind": "text PDF"
+  },
+  {
+    "file": "03_recurring_failure_escalation.pdf",
+    "size_bytes": 2834,
+    "expected_kind": "text PDF"
+  },
+  {
+    "file": "04_preventive_maintenance_schedule.pdf",
+    "size_bytes": 2651,
+    "expected_kind": "text PDF"
+  },
+  {
+    "file": "05_vendor_service_matrix.pdf",
+    "size_bytes": 2855,
+    "expected_kind": "text PDF"
+  },
+  {
+    "file": "06_tenant_communication_policy.pdf",
+    "size_bytes": 2642,
+    "expected_kind": "text PDF"
+  },
+  {
+    "file": "07_asset_inventory.pdf",
+    "size_bytes": 2851,
+    "expected_kind": "text PDF"
+  },
+  {
+    "file": "08_work_order_history.pdf",
+    "size_bytes": 6745,
+    "expected_kind": "multi-page table PDF"
+  },
+  {
+    "file": "09_archived_hvac_policy_2024.pdf",
+    "size_bytes": 2563,
+    "expected_kind": "text PDF"
+  },
+  {
+    "file": "10_untrusted_vendor_note.pdf",
+    "size_bytes": 2640,
+    "expected_kind": "text PDF"
+  },
+  {
+    "file": "11_scanned_equipment_inspection_note.pdf",
+    "size_bytes": 98079,
+    "expected_kind": "image-only scanned PDF"
+  },
+  {
+    "file": "12_facilities_operations_handbook.pdf",
+    "size_bytes": 2429,
+    "expected_kind": "two-column PDF"
+  }
+]
