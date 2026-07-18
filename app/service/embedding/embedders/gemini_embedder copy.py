@@ -5,13 +5,12 @@ from abc import ABC, abstractmethod
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from app.service.embedding.embedders.base_embedder import EmbeddingProvider
 from app.model.embedding import EMBEDDING_VECTOR_DIMENSIONS
+from langchain_qwen import QwenEmbeddings 
 
-TEXT_ONLY_EMBEDDING_MODEL = "gemini-embedding-001"
-MULTI_MODAL_EMBEDDING_MODEL = (
-    "gemini-embedding-2"  # For future use, not currently used in this code
-)
+QWEN_EMBEDDING_MODEL = "text-embedding-qwen3-embedding-0.6b"
+GEMMA_EMBEDDING_MODEL = "text-embedding-embeddinggemma-300m"
 
-class GeminiEmbeddingProvider(EmbeddingProvider):
+class GemmaEmbeddingProvider(EmbeddingProvider):
     def __init__(self) -> None:
         self._embedder = GoogleGenerativeAIEmbeddings(
             model=TEXT_ONLY_EMBEDDING_MODEL,
