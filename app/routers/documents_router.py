@@ -13,6 +13,7 @@ from app.model.document import Document, DocumentStatus
 from app.model.embedding import Embedding
 from app.repository.document_repository import DocumentRepository
 from app.repository.embedding_repository import EmbeddingRepository
+from app.repository.qdrant_repository import QdrantRepository
 from app.repository.repository_factory import RepositoryFactory
 from app.routers.dto.document_dto import DocumentResponse, NewDocumentRequest
 from dependency_injector.wiring import inject, Provide
@@ -131,8 +132,8 @@ async def upload_documents(
     document_repository: DocumentRepository = Depends(
         Provide[RepositoryFactory.document_repository]
     ),
-    embedding_repository: EmbeddingRepository = Depends(
-        Provide[RepositoryFactory.embedding_repository]
+    embedding_repository: QdrantRepository = Depends(
+        Provide[RepositoryFactory.qdrant_repository]
     ),
 ) -> list[DocumentResponse]:
     documents = []
@@ -157,8 +158,8 @@ async def embedding_documents(
     document_repository: DocumentRepository = Depends(
         Provide[RepositoryFactory.document_repository]
     ),
-    embedding_repository: EmbeddingRepository = Depends(
-        Provide[RepositoryFactory.embedding_repository]
+    embedding_repository: QdrantRepository = Depends(
+        Provide[RepositoryFactory.qdrant_repository]
     ),
 ) -> bool:
     return embedding_service.run_embedding(public_id, db_session, document_repository, embedding_repository)

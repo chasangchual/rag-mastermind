@@ -11,6 +11,7 @@ from app.model.embedding import Embedding
 from app.config.db import db_session
 from app.repository.document_repository import DocumentRepository
 from app.repository.embedding_repository import EmbeddingRepository
+from app.repository.qdrant_repository import QdrantRepository
 from app.repository.repository_factory import RepositoryFactory
 from dependency_injector.wiring import inject, Provide
 from fastapi import Depends
@@ -24,14 +25,14 @@ class EmbeddingService:
 
     def run_embedding(
         self,
-        public_id: UUID,
+        document_public_id: UUID,
         db_session: db_session,
         document_repository: DocumentRepository,
-        embedding_repository: EmbeddingRepository,
+        embedding_repository: QdrantRepository,
     ) -> bool:
 
         document: Optional[Document] = document_repository.find_by_public_id(
-            public_id, db_session=db_session
+            document_public_id, db_session=db_session
         )
 
         if document is None:
@@ -40,7 +41,7 @@ class EmbeddingService:
         if document.source is None:
             document_repository.update_State(document, DocumentStatus.FAILED, db_session)
             ex = ValueError(
-                f"Document source is None for document_id: {public_id}. Cannot process document."
+                f"Document source is None for document_id: {document_public_id}. Cannot process document."
             )
             logging.error(ex)
             raise ex
@@ -49,22 +50,10 @@ class EmbeddingService:
         try:
             # embedding_document.send(document.source)
             embedded_chunks: list[EmbeddedChunk] = default_pipeline.process_document(
-                public_id, document.source
+                document_public_id, document.source
             )
 
-            for embedded_chunk in embedded_chunks:
-                embedding_repository.add(
-                    Embedding(
-                        public_id=uuid.uuid4(),
-                        doc_id=document.id,
-                        index=embedded_chunk.chunk.metadata.get("page", 0),
-                        text=embedded_chunk.chunk.text,
-                        vector=embedded_chunk.vector,
-                        meta=embedded_chunk.chunk.metadata,
-                        document=document,
-                    ),
-                    db_session=db_session,
-                )
+            embedding_repository.add(document_public_id, embedded_chunks)
 
             document_repository.update_State(document, DocumentStatus.COMPLETED, db_session)
             return True
