@@ -7,6 +7,7 @@ from uuid import UUID
 from sqlalchemy.orm import registry
 
 from app.service.embedding import build_default_registry
+from app.service.embedding.embedders.lmstudio_embedder import LMStudioEmbeddingProvider
 from app.service.embedding.loaders.base_loader import ContentSource, ContentSourceLoaderRegistry
 from app.service.embedding.splitters.splitter import (
     DocumentSplitter,
@@ -19,7 +20,6 @@ from app.service.embedding.embedders.base_embedder import (
     HashEmbeddingProvider,
 )
 
-from app.service.embedding.embedders.gemini_embedder import GeminiEmbeddingProvider
 
 @dataclass(slots=True)
 class PipelineConfig:
@@ -102,4 +102,4 @@ def build_default_pipeline(
     )
 
 
-default_pipeline = build_default_pipeline(embedder=GeminiEmbeddingProvider())
+default_pipeline = build_default_pipeline(embedder=LMStudioEmbeddingProvider(model="qwen"))

@@ -47,6 +47,108 @@ brew link --force libpq
 ```
 Note: If linking fails, you may need to add the path to your .zshrc or .bash_profile as instructed in the Homebrew "Caveats" output. 
 
+### Quadrant 
+#### What is Qdrant?
+
+Qdrant is a vector database designed for storing and searching embeddings.
+
+In this RAG application, Qdrant stores document chunks together with:
+
+Dense embeddings for semantic search
+Sparse embeddings for keyword search
+Document metadata such as document ID, page number, and knowledge base ID
+
+The recommended configuration uses hybrid search, which combines semantic similarity with exact keyword matching.
+
+#### Create the Qdrant Collection
+##### 1. Open the Qdrant Dashboard
+
+Start Qdrant and open:
+```
+http://localhost:6333/dashboard
+```
+
+Select:
+
+Collections → Create Collection
+
+##### 2. Enter the Collection Name
+
+Use:
+```
+rag_document_chunks
+```
+
+#####  3. Select the Search Scope
+
+Select:
+```
+Global Search
+```
+
+Global Search creates an index across the entire collection.
+
+Search results can still be restricted using metadata filters such as:
+```
+tenant_id
+knowledge_base_id
+document_id
+is_archived
+```
+
+Use the specialized Multitenancy option only when every search is always restricted to a specific tenant.
+
+##### 4. Select the Search Type
+
+Select:
+```
+Simple Hybrid Search
+```
+
+Hybrid search creates two vector types:
+- dense vector for semantic search
+-sparse vector for exact keyword search
+
+This is useful for PDF documents containing names, dates, policy numbers, error codes, acronyms, and technical terms.
+
+##### 5. Configure the Dense Vector
+
+Enter the following values:
+```
+Vector name: dense
+Dimension:   4096
+Distance:    Cosine
+```
+
+The vector dimension must exactly match the output dimension of the embedding model.
+
+For example, when the embedding model returns 4,096 values:
+
+Dimension: 4096
+
+##### 6. Configure the Sparse Vector
+
+Enter:
+```
+Sparse vector name: sparse
+```
+
+The sparse vector is used for keyword-based retrieval.
+
+##### 7. Create the Collection
+
+Review the configuration:
+```
+Collection name:     rag_document_chunks
+Search scope:        Global Search
+Search type:         Simple Hybrid Search
+Dense vector name:   dense
+Dense dimension:     4096
+Distance metric:     Cosine
+Sparse vector name:  sparse
+```
+
+Select Create Collection.
 
 ### Install textract 
 
