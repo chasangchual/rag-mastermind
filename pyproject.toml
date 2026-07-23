@@ -56,4 +56,5 @@ dependencies = [
     "langchain-google-genai>=4.2.6",
     "dramatiq[rabbitmq,watch]>=2.2.0",
     "lmstudio>=1.5.0",
+    "qdrant-client>=1.18.0",
 ]

@@ -48,6 +48,22 @@ class AppConfig(BaseSettings):
 
     embedding_batch_size: int = 16
     
+    lmstudio_api_key: str = Field(default="", validation_alias="LMSTUDIO_API_KEY")
+    lmstudio_api_url: str = Field(default="", validation_alias="LMSTUDIO_API_URL")
+
+    qdrant_host: str = Field(default="localhost", validation_alias="QDRANT_HOST")
+    qdrant_port: int = Field(default=6333, validation_alias="QDRANT_PORT")
+    qdrant_api_key: str | None = Field(default=None, validation_alias="QDRANT_API_KEY")
+    qdrant_collection_name: str = Field(default="rag_document_chunks", validation_alias="QDRANT_COLLECTION_NAME")
+    qdrant_vector_size: int = Field(default=4096, validation_alias="QDRANT_VECTOR_SIZE")
+    qdrant_distance_metric: str = Field(default="Cosine", validation_alias="QDRANT_DISTANCE_METRIC")
+    qdrant_dense_vector: str = Field(default="dense", validation_alias="QDRANT_DENSE_VECTOR")
+    qdrant_sparse_vector: str = Field(default="sparse", validation_alias="QDRANT_SPARSE_VECTOR")
+
+    @property
+    def qdrant_url(self) -> str:
+        return f"http://{self.qdrant_host}:{self.qdrant_port}"
+
     @property
     def database_url(self) -> str:
         return f"postgresql+psycopg://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
