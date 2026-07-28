@@ -15,7 +15,7 @@ from app.repository.qdrant_repository import QdrantRepository
 from app.repository.repository_factory import RepositoryFactory
 from dependency_injector.wiring import inject, Provide
 from fastapi import Depends
-from app.service.embedding.embedders.lmstudio_embedder import LMStudioEmbeddingProvider
+from app.service.embedding.embedders.lms_qwen_8b_embedder import LMStudioEmbeddingProvider
 from app.service.embedding.embedding_pipeline import default_pipeline
 from app.service.embedding.splitters.splitter import EmbeddedChunk
 

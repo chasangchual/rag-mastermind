@@ -48,8 +48,9 @@ class AppConfig(BaseSettings):
 
     embedding_batch_size: int = 16
     
+    lmstudio_api_host: str = Field(default="", validation_alias="LMSTUDIO_API_HOST")
+    lmstudio_api_port: str = Field(default="", validation_alias="LMSTUDIO_API_PORT")
     lmstudio_api_key: str = Field(default="", validation_alias="LMSTUDIO_API_KEY")
-    lmstudio_api_url: str = Field(default="", validation_alias="LMSTUDIO_API_URL")
 
     qdrant_host: str = Field(default="localhost", validation_alias="QDRANT_HOST")
     qdrant_port: int = Field(default=6333, validation_alias="QDRANT_PORT")
@@ -60,6 +61,10 @@ class AppConfig(BaseSettings):
     qdrant_dense_vector: str = Field(default="dense", validation_alias="QDRANT_DENSE_VECTOR")
     qdrant_sparse_vector: str = Field(default="sparse", validation_alias="QDRANT_SPARSE_VECTOR")
 
+    @property
+    def lmstudio_api_url(self) -> str:
+        return f"http://{self.lmstudio_api_host}:{self.lmstudio_api_port}/v1"
+    
     @property
     def qdrant_url(self) -> str:
         return f"http://{self.qdrant_host}:{self.qdrant_port}"

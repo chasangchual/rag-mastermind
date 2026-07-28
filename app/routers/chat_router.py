@@ -12,6 +12,7 @@ from app.utils.session_util import SESSION_ID_NAME, SessionUtils, get_session_id
 from app.utils.date_util import now_utc_iso
 
 from app.utils.session_util import SESSION_ID_NAME, SessionUtils
+from app.service.chat.lmstudio_chat import lmstudio_chat_provider
 
 class CHAT_MESSAGE_TYPE(Enum):
     UNKNOWN = "unknown"
@@ -64,7 +65,7 @@ async def build_response(user_text: str, session_id: str) -> dict[str, Any]:
     """Temporary backend placeholder for the future RAG implementation."""
     return {
         "role": "assistant",
-        "content": DEFAULT_ASSISTANT_MESSAGE,
+        "content": user_text,
         "created_at": now_utc_iso(),
         "meta": {
             "session_id": session_id,
@@ -128,7 +129,8 @@ async def ws_chat(websocket: WebSocket):
                 if not user_message:
                     continue # ignore empty user message
                 
-                reply = await build_response(user_message, session_id)
+                lmstudio_chat_provider.ask(user_message)
+                reply = await build_response(lmstudio_chat_provider.ask(user_message), session_id)
                 CHAT_MEMORY[session_id].append(reply)
 
                 await websocket.send_json({

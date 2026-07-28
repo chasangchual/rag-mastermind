@@ -59,7 +59,12 @@
 
     const bubble = document.createElement('div');
     bubble.className = 'message-bubble';
-    bubble.textContent = text;
+
+    if (role === 'assistant' && window.marked && window.DOMPurify) {
+      bubble.innerHTML = window.DOMPurify.sanitize(window.marked.parse(text));
+    } else {
+      bubble.textContent = text;
+    }
 
     if (options.citations && options.citations.length > 0) {
       const citationRow = document.createElement('div');

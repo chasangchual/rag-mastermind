@@ -172,6 +172,7 @@ body {
 .assistant-message { align-self: flex-start; }
 .message-label { font-size: .74rem; color: var(--muted); font-weight: 800; margin-bottom: 6px; }
 .message-bubble { padding: 14px 16px; border-radius: 18px; background: var(--surface); border: 1px solid var(--border); }
+.message-bubble > :last-child { margin-bottom: 0; }
 .user-message .message-bubble { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: 0; }
 .citation-row { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
 .citation-chip { font-size: .78rem; padding: 6px 9px; border-radius: 999px; background: var(--surface-accent); color: var(--text); border: 1px solid var(--border); }
