@@ -1,6 +1,6 @@
 from shutil import unregister_archive_format
 
-from fastapi import APIRouter, Request, Cookie, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Request, Response, Cookie, WebSocket, WebSocketDisconnect
 from fastapi.templating import Jinja2Templates
 from dependency_injector.wiring import inject, Provide
 from typing import Any, Optional
@@ -12,7 +12,7 @@ from app.utils.session_util import SESSION_ID_NAME, SessionUtils, get_session_id
 from app.utils.date_util import now_utc_iso
 
 from app.utils.session_util import SESSION_ID_NAME, SessionUtils
-from app.service.chat.lmstudio_chat import lmstudio_chat_provider
+from app.service.chat.gemini_chat import GeminiChatProvider
 
 class CHAT_MESSAGE_TYPE(Enum):
     UNKNOWN = "unknown"
@@ -38,6 +38,7 @@ DEFAULT_ASSISTANT_MESSAGE = (
     "retriever, embedding/vector store, reranker, and LLM service."
 )
 CHAT_MEMORY: dict[str, list[dict[str, Any]]] = {}
+CHAT_PROVIDERS: dict[str, GeminiChatProvider] = {}  # ponytail: grows per session, never evicted; add TTL/cleanup if session count becomes an issue
 
 chat_router = APIRouter(
     prefix="/app/chat"
@@ -87,6 +88,20 @@ async def build_response(user_text: str, session_id: str) -> dict[str, Any]:
         },
     }
         
+@chat_router.post("/new-session")
+async def new_chat_session(
+    response: Response,
+    session_id: Optional[str] = Cookie(default=None, alias=SESSION_ID_NAME),
+):
+    """Drop the current session's chat state and issue a brand-new session id/cookie."""
+    if session_id:
+        CHAT_MEMORY.pop(session_id, None)
+        CHAT_PROVIDERS.pop(session_id, None)
+
+    new_session_id = SessionUtils.get_or_create_session_id(None)
+    SessionUtils.set_session_cookie(response, new_session_id)
+    return {"session_id": new_session_id}
+
 @chat_router.websocket("/ws")
 async def ws_chat(websocket: WebSocket):
     """Chat WebSocket endpoint.
@@ -106,6 +121,7 @@ async def ws_chat(websocket: WebSocket):
         
         session_id = get_session_id(greeting.get(SESSION_ID_NAME))
         CHAT_MEMORY.setdefault(session_id, [])
+        chat_provider = CHAT_PROVIDERS.setdefault(session_id, GeminiChatProvider())
         
         await push_system_message(websocket, CHAT_MESSAGE_TYPE.READY, session_id, "WebSocket connection established.")
 
@@ -113,36 +129,31 @@ async def ws_chat(websocket: WebSocket):
             try:
                 event = await websocket.receive_json()
                 msg_type = get_message_type(event.get('type'))
-                
+
                 if CHAT_MESSAGE_TYPE.PING == msg_type:
                     await push_system_message(websocket, CHAT_MESSAGE_TYPE.PING, session_id, 'pong')
                     continue
-                
-                if CHAT_MESSAGE_TYPE.USER_MESSAGE == msg_type:
+
+                if CHAT_MESSAGE_TYPE.SYSTEM_MESSAGE == msg_type:
                     await push_system_message(websocket, CHAT_MESSAGE_TYPE.SYSTEM_MESSAGE, session_id, event)
-                    
+
                 if CHAT_MESSAGE_TYPE.UNKNOWN == msg_type:
                     await push_error_message(websocket, CHAT_ERROR_TYPE.INVALID_TYPE)
                     continue
 
-                user_message = (event.get("text") or "").strip()
-                if not user_message:
-                    continue # ignore empty user message
-                
-                lmstudio_chat_provider.ask(user_message)
-                reply = await build_response(lmstudio_chat_provider.ask(user_message), session_id)
-                CHAT_MEMORY[session_id].append(reply)
+                if CHAT_MESSAGE_TYPE.USER_MESSAGE == msg_type:
+                    user_message = (event.get("text") or "").strip()
+                    if not user_message:
+                        continue # ignore empty user message
 
-                await websocket.send_json({
-                    "type": "assistant_message",
-                    "message": reply,
-                })
-                
-                await websocket.send_json({
-                "type": "typing",
-                "state": False,
-                })
-                
+                    reply = await build_response(chat_provider.ask(user_message), session_id)
+                    CHAT_MEMORY[session_id].append(reply)
+
+                    await websocket.send_json({
+                        "type": "assistant_message",
+                        "message": reply,
+                    })
+
             except Exception as e:
                 print(f"Error in WebSocket communication: {e}")
                 break

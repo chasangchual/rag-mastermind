@@ -61,6 +61,9 @@ class AppConfig(BaseSettings):
     qdrant_dense_vector: str = Field(default="dense", validation_alias="QDRANT_DENSE_VECTOR")
     qdrant_sparse_vector: str = Field(default="sparse", validation_alias="QDRANT_SPARSE_VECTOR")
 
+
+    gemini_api_key: str = Field(default="", validation_alias="GEMINI_API_KEY")
+    
     @property
     def lmstudio_api_url(self) -> str:
         return f"http://{self.lmstudio_api_host}:{self.lmstudio_api_port}/v1"
