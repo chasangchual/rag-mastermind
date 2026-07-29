@@ -18,6 +18,7 @@
 
   const chatInput = document.getElementById('chatInput');
   const sendButton = document.getElementById('sendChat');
+  const newSessionButton = document.getElementById('newSessionButton');
   const chatMessages = document.getElementById('chatMessages');
   const wsStatus = document.getElementById('wsStatus');
   const traceList = document.getElementById('traceList');
@@ -35,6 +36,23 @@
   let socket = null;
   let isSocketReady = false;
   let pendingStartedAt = null;
+  let reconnectAttempts = 0;
+  let reconnectTimer = null;
+
+  function scheduleReconnect() {
+    if (reconnectTimer) {
+      return;
+    }
+
+    const delayMs = Math.min(1000 * 2 ** reconnectAttempts, 15000);
+    reconnectAttempts += 1;
+    setStatus(`Reconnecting in ${Math.round(delayMs / 1000)}s`, 'text-bg-warning-soft');
+
+    reconnectTimer = setTimeout(function () {
+      reconnectTimer = null;
+      connectWebSocket();
+    }, delayMs);
+  }
 
   function setStatus(label, statusClass) {
     if (!wsStatus) {
@@ -148,6 +166,7 @@
     socket = new WebSocket(websocketUrl());
 
     socket.addEventListener('open', function () {
+      reconnectAttempts = 0;
       socket.send(JSON.stringify({
         type: 'cw_chat_hello',
         session_id: sessionId,
@@ -214,6 +233,7 @@
     socket.addEventListener('close', function () {
       isSocketReady = false;
       setStatus('Disconnected', 'text-bg-danger-soft');
+      scheduleReconnect();
     });
 
     socket.addEventListener('error', function () {
@@ -438,6 +458,16 @@
   }
 
   sendButton?.addEventListener('click', sendChatMessage);
+
+  newSessionButton?.addEventListener('click', async function () {
+    newSessionButton.disabled = true;
+
+    try {
+      await fetch('/app/chat/new-session', { method: 'POST' });
+    } finally {
+      window.location.reload();
+    }
+  });
 
   chatInput?.addEventListener('keydown', function (event) {
     if (event.key === 'Enter') {

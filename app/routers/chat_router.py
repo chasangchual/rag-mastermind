@@ -128,6 +128,10 @@ async def ws_chat(websocket: WebSocket):
         while True:
             try:
                 event = await websocket.receive_json()
+            except WebSocketDisconnect:
+                break
+
+            try:
                 msg_type = get_message_type(event.get('type'))
 
                 if CHAT_MESSAGE_TYPE.PING == msg_type:
@@ -155,8 +159,14 @@ async def ws_chat(websocket: WebSocket):
                     })
 
             except Exception as e:
-                print(f"Error in WebSocket communication: {e}")
-                break
+                # ponytail: keep the socket alive on processing errors (e.g. chat provider
+                # down) so the client doesn't need to reconnect for a transient backend failure.
+                print(f"Error handling chat message: {e}")
+                await websocket.send_json({
+                    "type": "error",
+                    "error": "Failed to process message. Please try again.",
+                    "created_at": now_utc_iso(),
+                })
             
     except WebSocketDisconnect:
         print("WebSocket disconnected")
