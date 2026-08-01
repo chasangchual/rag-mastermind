@@ -18,6 +18,7 @@
 
   const chatInput = document.getElementById('chatInput');
   const sendButton = document.getElementById('sendChat');
+  const chatModeSelect = document.getElementById('chatModeSelect');
   const newSessionButton = document.getElementById('newSessionButton');
   const chatMessages = document.getElementById('chatMessages');
   const wsStatus = document.getElementById('wsStatus');
@@ -454,6 +455,7 @@
     socket.send(JSON.stringify({
       type: 'user_message',
       text: value,
+      mode: chatModeSelect?.value || 'rag',
     }));
   }
 

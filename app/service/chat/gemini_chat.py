@@ -16,7 +16,7 @@ GEMINI_CHAT_MODEL = "gemini-3.6-flash"
 class GeminiChatProvider(ChatProvider):
     def __init__(self, max_history_turns: int = MAX_HISTORY_TURNS) -> None:
         config = get_config()
-        self._model = ChatGoogleGenerativeAI(model=GEMINI_CHAT_MODEL, api_key=config.gemini_api_key)
+        self._model = ChatGoogleGenerativeAI(model=GEMINI_CHAT_MODEL, api_key=config.gemini_api_key, temperature=0.0)
         self._history: deque[tuple[str, str]] = deque(maxlen=max_history_turns)
 
     def ask(self, question: str) -> str:
@@ -24,7 +24,7 @@ class GeminiChatProvider(ChatProvider):
         for user_message, assistant_message in self._history:
             messages.append(HumanMessage(user_message))
             messages.append(AIMessage(assistant_message))
-        messages.append(HumanMessage(question))
+            messages.append(HumanMessage(question))
 
         answer = self._model.invoke(messages).text
         self._history.append((question, answer))

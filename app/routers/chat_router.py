@@ -13,6 +13,7 @@ from app.utils.date_util import now_utc_iso
 
 from app.utils.session_util import SESSION_ID_NAME, SessionUtils
 from app.service.chat.gemini_chat import GeminiChatProvider
+from app.service.chat.gemini_rag_chat import GeminiRagChatProvider
 
 class CHAT_MESSAGE_TYPE(Enum):
     UNKNOWN = "unknown"
@@ -37,8 +38,19 @@ DEFAULT_ASSISTANT_MESSAGE = (
     "The RAG pipeline is not connected yet. Later, this handler can call your "
     "retriever, embedding/vector store, reranker, and LLM service."
 )
+class CHAT_MODE(Enum):
+    RAG = "rag"
+    LLM = "llm"
+
+def get_chat_mode(mode: str) -> CHAT_MODE:
+    try:
+        return CHAT_MODE(mode)
+    except ValueError:
+        return CHAT_MODE.RAG
+
 CHAT_MEMORY: dict[str, list[dict[str, Any]]] = {}
 CHAT_PROVIDERS: dict[str, GeminiChatProvider] = {}  # ponytail: grows per session, never evicted; add TTL/cleanup if session count becomes an issue
+RAG_CHAT_PROVIDERS: dict[str, GeminiRagChatProvider] = {}  # ponytail: same cleanup caveat as CHAT_PROVIDERS
 
 chat_router = APIRouter(
     prefix="/app/chat"
@@ -97,6 +109,7 @@ async def new_chat_session(
     if session_id:
         CHAT_MEMORY.pop(session_id, None)
         CHAT_PROVIDERS.pop(session_id, None)
+        RAG_CHAT_PROVIDERS.pop(session_id, None)
 
     new_session_id = SessionUtils.get_or_create_session_id(None)
     SessionUtils.set_session_cookie(response, new_session_id)
@@ -122,6 +135,7 @@ async def ws_chat(websocket: WebSocket):
         session_id = get_session_id(greeting.get(SESSION_ID_NAME))
         CHAT_MEMORY.setdefault(session_id, [])
         chat_provider = CHAT_PROVIDERS.setdefault(session_id, GeminiChatProvider())
+        rag_chat_provider = RAG_CHAT_PROVIDERS.setdefault(session_id, GeminiRagChatProvider())
         
         await push_system_message(websocket, CHAT_MESSAGE_TYPE.READY, session_id, "WebSocket connection established.")
 
@@ -150,7 +164,9 @@ async def ws_chat(websocket: WebSocket):
                     if not user_message:
                         continue # ignore empty user message
 
-                    reply = await build_response(chat_provider.ask(user_message), session_id)
+                    mode = get_chat_mode(event.get("mode"))
+                    provider = rag_chat_provider if mode == CHAT_MODE.RAG else chat_provider
+                    reply = await build_response(provider.ask(user_message), session_id)
                     CHAT_MEMORY[session_id].append(reply)
 
                     await websocket.send_json({
