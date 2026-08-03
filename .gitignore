@@ -14,3 +14,10 @@ wheels/
 
 # Windows/WSL metadata
 *:Zone.Identifier
+
+# Model cache
+data/
+
+# Office docs (planning docs, kept local)
+*.docx
+~$*.docx

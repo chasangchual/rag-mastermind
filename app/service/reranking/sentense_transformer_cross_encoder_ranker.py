@@ -4,24 +4,27 @@ import logging
 import os
 from pathlib import Path
 
-from fastapi import logger
 import torch
-from sentence_transformers import CrossEncoder
 from huggingface_hub.errors import LocalEntryNotFoundError
+from langchain_core.documents import Document
+from sentence_transformers import CrossEncoder
+from sentence_transformers.base.modules import Transformer
 
 from app.service.reranking.base_reranker import Reranker
 
-# logging.basicConfig(level=logging.INFO)
-
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"  # You can change this to any other cross-encoder model available in the sentence-transformers library
+DEFAULT_MODEL = "cross-encoder/ms-marco-MiniLM-L6-v2"
+
 CACHE_DIR = Path(
     os.getenv(
         "HF_MODEL_CACHE",
         "./data/huggingface",
     )
-)
+).resolve()
+
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
 
 class SentenceTransformerCrossEncoderRanker(Reranker):
     def __init__(
@@ -30,71 +33,139 @@ class SentenceTransformerCrossEncoderRanker(Reranker):
         batch_size: int = 5,
         max_length: int = 512,
         normalize_scores: bool = False,
-    ):
+    ) -> None:
         if batch_size <= 0:
             raise ValueError("batch_size must be greater than zero")
 
         if max_length <= 0:
             raise ValueError("max_length must be greater than zero")
-        
+
         self._model_name = model_name
         self._batch_size = batch_size
         self._max_length = max_length
         self._normalize_scores = normalize_scores
-        
-        self._model = self.load_cross_encoder(model_name, max_length, normalize_scores)   # Use GPU if available
 
-    def load_cross_encoder(self, model_name : str = DEFAULT_MODEL, max_length: int = 512, normalize_scores: bool = False) -> CrossEncoder:
+        self._model = self.load_cross_encoder(
+            model_name=model_name,
+            max_length=max_length,
+            normalize_scores=normalize_scores,
+        )
+
+    def load_cross_encoder(
+        self,
+        model_name: str = DEFAULT_MODEL,
+        max_length: int = 512,
+        normalize_scores: bool = False,
+    ) -> CrossEncoder:
         CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
-        # Some reranker models return raw logits.
-        # Sigmoid converts a single score to approximately 0–1 while preserving the ranking order.
         activation_fn = torch.nn.Sigmoid() if normalize_scores else None
 
-        try:
-            logger.info("Attempting to load reranker from local cache")
+        def create_model(
+            local_files_only: bool,
+        ) -> CrossEncoder:
+            shared_kwargs = {
+                "cache_dir": str(CACHE_DIR),
+                "local_files_only": local_files_only,
+            }
+
+            transformer_module = Transformer(
+                model_name_or_path=model_name,
+                transformer_task="sequence-classification",
+                model_kwargs=shared_kwargs.copy(),
+                processor_kwargs={
+                    **shared_kwargs,
+                    "model_max_length": max_length,
+                },
+                config_kwargs=shared_kwargs.copy(),
+            )
 
             return CrossEncoder(
-                model_name_or_path=model_name,
-                max_length=max_length,
+                modules=[transformer_module],
                 activation_fn=activation_fn,
-                cache_folder=str(CACHE_DIR),
+            )
+
+        try:
+            logger.info(
+                "Attempting to load reranker '%s' from local cache: %s",
+                model_name,
+                CACHE_DIR,
+            )
+
+            model = create_model(
                 local_files_only=True,
             )
 
+            logger.info(
+                "Reranker '%s' loaded from local cache",
+                model_name,
+            )
+
+            return model
+
         except (LocalEntryNotFoundError, OSError) as exc:
             logger.info(
-                "Reranker was not found in the local cache. "
-                "Downloading it from Hugging Face. Reason: %s",
+                "Reranker '%s' was not found or was incomplete locally. "
+                "Downloading from Hugging Face. Reason: %s",
+                model_name,
                 exc,
             )
 
-            return CrossEncoder(
-                model_name_or_path=model_name,
-                max_length=max_length,
-                activation_fn=activation_fn,
-                cache_folder=str(CACHE_DIR),
+            model = create_model(
                 local_files_only=False,
             )
 
-    def rerank(self, query: str, candidates: list[str]) -> list[str]:
+            logger.info(
+                "Reranker '%s' downloaded and cached at: %s",
+                model_name,
+                CACHE_DIR,
+            )
+
+            return model
+
+    def rerank(
+        self,
+        query: str,
+        candidates: list[Document],
+    ) -> list[tuple[Document, float]]:
         """
-        Rank the candidates based on their relevance to the query using a cross-encoder model.
+        Rank candidates according to their relevance to the query.
 
-        :param query: The input query string.
-        :param candidates: A list of candidate strings to be ranked.
-        :return: A list of tuples containing candidates and their corresponding scores, sorted by score in descending order.
+        Args:
+            query: Query used to rank the candidate documents.
+            candidates: Candidate text values to rank.
+
+        Returns:
+            Candidate and score tuples sorted by descending score.
         """
-        # Prepare the input for the cross-encoder
-        inputs = [(query, candidate) for candidate in candidates]
+        query = query.strip()
 
-        # Get the scores from the model
-        scores = self._model.predict(inputs)
+        if not query:
+            raise ValueError("query must not be empty")
 
-        # Combine candidates with their scores
-        ranked_candidates = list(zip(candidates, scores))
+        if not candidates:
+            return []
 
-        # Sort candidates by score in descending order
-        ranked_candidates.sort(key=lambda x: x[1], reverse=True)
+        inputs = [(query, candidate.page_content) for candidate in candidates]
+
+        scores = self._model.predict(
+            inputs,
+            batch_size=self._batch_size,
+            show_progress_bar=False,
+        )
+
+        ranked_candidates = [
+            (candidate, float(score))
+            for candidate, score in zip(
+                candidates,
+                scores,
+                strict=True,
+            )
+        ]
+
+        ranked_candidates.sort(
+            key=lambda item: item[1],
+            reverse=True,
+        )
 
         return ranked_candidates
